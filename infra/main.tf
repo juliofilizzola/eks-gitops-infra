@@ -74,14 +74,12 @@ module "eks" {
 
       instance_types = ["t3.medium"]
 
-      # Tags para node group
       tags = {
         Environment = var.environment
       }
     }
   }
 
-  # ================= ACCESS ENTRIES =================
   access_entries = {
     eks_admin = {
       principal_arn = "arn:aws:iam::367265287622:user/BPTECH-DEVOSP"
@@ -103,7 +101,6 @@ module "eks" {
   }
 }
 
-# ================= DATA SOURCES =================
 data "aws_eks_cluster" "cluster" {
   name       = module.eks.cluster_name
   depends_on = [module.eks]
@@ -114,12 +111,11 @@ data "aws_eks_cluster_auth" "cluster" {
   depends_on = [module.eks]
 }
 
-# ================= KUBERNETES PROVIDER =================
+
 provider "kubernetes" {
   host                   = data.aws_eks_cluster.cluster.endpoint
   cluster_ca_certificate = base64decode(data.aws_eks_cluster.cluster.certificate_authority[0].data)
-  
-  # FIX: Usa exec para tokens dinâmicos (resolve Unauthorized)
+
   exec {
     api_version = "client.authentication.k8s.io/v1beta1"
     command     = "aws"
@@ -127,13 +123,11 @@ provider "kubernetes" {
   }
 }
 
-# ================= HELM PROVIDER =================
 provider "helm" {
   kubernetes {
     host                   = data.aws_eks_cluster.cluster.endpoint
     cluster_ca_certificate = base64decode(data.aws_eks_cluster.cluster.certificate_authority[0].data)
-    
-    # FIX: Mesma config exec para Helm
+
     exec {
       api_version = "client.authentication.k8s.io/v1beta1"
       command     = "aws"
